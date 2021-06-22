@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_flagr/src/evaluation_request.dart';
 import 'package:flutter_flagr/src/flags.dart';
 import 'package:http/http.dart' as http;
+
+import 'evaluation_response.dart';
 
 class Flagr {
   Flagr._internal(this._url, this._client);
@@ -24,7 +27,7 @@ class Flagr {
   }
 
   static Future<Flagr> init(
-      {@required String api, Evaluation evaluation}) async {
+      {@required String api, EvaluationContext evaluationContext}) async {
     _instance = Flagr._internal(api, http.Client());
     await _instance._loadToggles();
     return _instance;
@@ -68,5 +71,14 @@ class Flagr {
     });
 
     return featureFlag.enabled;
+  }
+
+  Future<EvaluationResponse> postEvaluation(
+      EvaluationContext evaluationContext) async {
+    final response = await _client.post(_url + "/evaluation",
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(
+            evaluationContext != null ? evaluationContext.toJson() : null));
+    return EvaluationResponse.fromJson(json.decode(response.body));
   }
 }
