@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_flagr/src/evaluation_request.dart';
 import 'package:flutter_flagr/src/flags.dart';
@@ -35,11 +37,15 @@ class Flagr {
   }
 
   Future<void> _loadToggles() async {
-    final reponse = await _client.get(
+    final response = await _client.get(
       _url + "/flags",
     );
 
-    _flags = flagsFromJson(reponse.body);
+    if (response.statusCode == 200) {
+      _flags = flagsFromJson(response.body);
+    } else {
+      throw HttpException(response.body, uri: Uri.parse(url));
+    }
   }
 
   bool isEnabled(String flagKey, {bool defaultValue = false}) {
@@ -54,11 +60,13 @@ class Flagr {
         updatedAt: null,
         variants: null);
 
-    final featureFlag = _flags?.firstWhere((flag) => flag.key == flagKey,
-        orElse: () => defaultFlag);
+    final featureFlag =
+        _flags?.firstWhere((flag) => flag.key == flagKey, orElse: () {
+      print("flutter_flagr: unable to find flag $flagKey in the database. "
+          "Default value is used.");
+      return defaultFlag;
+    });
 
-    final toggle = featureFlag ?? defaultFlag;
-
-    return toggle.enabled ?? defaultValue;
+    return featureFlag.enabled;
   }
 }
