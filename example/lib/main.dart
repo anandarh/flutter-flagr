@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_flagr/flutter_flagr.dart';
 
 void main() async {
-  await Flagr.init(api: String.fromEnvironment('API_URL'));
+
+  await Flagr.init(api: 'https://try-flagr.herokuapp.com/api/v1');
 
   runApp(MyApp());
 }
@@ -26,7 +27,18 @@ class _MyAppState extends State<MyApp> {
   Future<void> checkFlag() async {
     final flagr = Flagr.instance;
 
-    final flag_key = String.fromEnvironment("FLAG_KEY");
+    final evaluationContext = EvaluationContext(
+          entityId: "127",
+          entityType: "user",
+          entityContext: {
+            "state": "CA"
+          },
+          flagId: 1,
+          enableDebug: false
+    );
+
+    EvaluationResponse response = await flagr.postEvaluation(evaluationContext);
+    print(response.toString());
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
@@ -34,7 +46,9 @@ class _MyAppState extends State<MyApp> {
     if (!mounted) return;
 
     setState(() {
-      _isEnabled = flagr.isEnabled(flag_key, defaultValue: false).toString();
+      _isEnabled = flagr
+          .isEnabled('api_baseurl', defaultValue: false)
+          .toString();
     });
   }
 
@@ -46,7 +60,16 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: $_isEnabled\n'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'is Enabled $_isEnabled',
+                style: Theme.of(context).textTheme.headline6,
+              ),
+            ],
+          ),
         ),
       ),
     );
