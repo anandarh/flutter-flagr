@@ -4,8 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_flagr/flutter_flagr.dart';
 
 void main() async {
+  await Flagr.init(
+    'https://try-flagr.herokuapp.com/api/v1',
 
-  await Flagr.init(api: 'https://try-flagr.herokuapp.com/api/v1');
+    // The default fetchTimeout duration is 60 seconds
+    fetchTimeout: const Duration(seconds: 60),
+
+      // Polling is disabled if no minimumFetchInterval is given
+    minimumFetchInterval: const Duration(minutes: 15)
+  );
 
   runApp(MyApp());
 }
@@ -28,14 +35,11 @@ class _MyAppState extends State<MyApp> {
     final flagr = Flagr.instance;
 
     final evaluationContext = EvaluationContext(
-          entityId: "127",
-          entityType: "user",
-          entityContext: {
-            "state": "CA"
-          },
-          flagId: 1,
-          enableDebug: false
-    );
+        entityId: "127",
+        entityType: "user",
+        entityContext: {"state": "CA"},
+        flagId: 1,
+        enableDebug: false);
 
     EvaluationResponse response = await flagr.postEvaluation(evaluationContext);
     print(response.toString());
@@ -46,9 +50,8 @@ class _MyAppState extends State<MyApp> {
     if (!mounted) return;
 
     setState(() {
-      _isEnabled = flagr
-          .isEnabled('api_baseurl', defaultValue: false)
-          .toString();
+      _isEnabled =
+          flagr.isEnabled('api_baseurl', defaultValue: false).toString();
     });
   }
 
