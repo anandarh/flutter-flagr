@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_flagr/src/evaluation_request.dart';
 import 'package:flutter_flagr/src/flags.dart';
 import 'package:http/http.dart' as http;
@@ -9,27 +9,43 @@ import 'package:http/http.dart' as http;
 import 'evaluation_response.dart';
 
 class Flagr {
-  Flagr._internal(this._url, this._client);
+  Flagr._internal(
+      this._url, this._client, this._minimumFetchInterval, this._fetchTimeout);
 
   final String _url;
 
   final http.Client _client;
 
+  final Duration _minimumFetchInterval;
+
+  final Duration _fetchTimeout;
+
   List<Flag> _flags;
+
+  Timer _togglePollingTimer;
 
   static Flagr _instance;
 
   static Flagr get instance {
-    if (_instance == null)
-      throw Exception(
-          'Flagr must be initialized first. \nFlagr.init(api: API_URL);');
+    if (_instance == null) throw Exception('Flagr must be initialized first.');
     return _instance;
   }
 
   static Future<Flagr> init(
-      {@required String api, EvaluationContext evaluationContext}) async {
-    _instance = Flagr._internal(api, http.Client());
+    String api, {
+    Duration minimumFetchInterval,
+    Duration fetchTimeout = const Duration(seconds: 60),
+  }) async {
+    assert(!fetchTimeout.isNegative);
+
+    if (fetchTimeout.inSeconds == 0) {
+      fetchTimeout = const Duration(seconds: 60);
+    }
+
+    _instance =
+        Flagr._internal(api, http.Client(), minimumFetchInterval, fetchTimeout);
     await _instance._loadToggles();
+    _instance._setTogglePollingTimer();
     return _instance;
   }
 
@@ -37,6 +53,7 @@ class Flagr {
 
   void dispose() {
     _client.close();
+    _togglePollingTimer?.cancel();
   }
 
   Future<void> _loadToggles() async {
@@ -75,10 +92,22 @@ class Flagr {
 
   Future<EvaluationResponse> postEvaluation(
       EvaluationContext evaluationContext) async {
-    final response = await _client.post(_url + "/evaluation",
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(
-            evaluationContext != null ? evaluationContext.toJson() : null));
+    final response = await _client
+        .post(_url + "/evaluation",
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode(
+                evaluationContext != null ? evaluationContext.toJson() : null))
+        .timeout(_fetchTimeout);
     return EvaluationResponse.fromJson(json.decode(response.body));
+  }
+
+  void _setTogglePollingTimer() {
+    if (_minimumFetchInterval == null) {
+      return;
+    }
+
+    _togglePollingTimer = Timer.periodic(_minimumFetchInterval, (timer) {
+      _loadToggles();
+    });
   }
 }
