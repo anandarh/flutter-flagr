@@ -9,10 +9,12 @@ import 'package:http/http.dart' as http;
 import 'evaluation_response.dart';
 
 class Flagr {
-  Flagr._internal(
-      this._url, this._client, this._minimumFetchInterval, this._fetchTimeout);
+  Flagr._internal(this._url, this._tags, this._client,
+      this._minimumFetchInterval, this._fetchTimeout);
 
   final String _url;
+
+  final String _tags;
 
   final http.Client _client;
 
@@ -33,6 +35,7 @@ class Flagr {
 
   static Future<Flagr> init(
     String api, {
+    String tags,
     Duration minimumFetchInterval,
     Duration fetchTimeout = const Duration(seconds: 60),
   }) async {
@@ -42,8 +45,8 @@ class Flagr {
       fetchTimeout = const Duration(seconds: 60);
     }
 
-    _instance =
-        Flagr._internal(api, http.Client(), minimumFetchInterval, fetchTimeout);
+    _instance = Flagr._internal(
+        api, tags, http.Client(), minimumFetchInterval, fetchTimeout);
     await _instance._loadToggles();
     _instance._setTogglePollingTimer();
     return _instance;
@@ -57,9 +60,13 @@ class Flagr {
   }
 
   Future<void> _loadToggles() async {
-    final response = await _client.get(
-      _url + "/flags",
-    );
+    String url = _url + "/flags";
+
+    if (_tags != null) {
+      url = url + "?tags=${_tags.replaceAll(new RegExp(r"\s+"), "")}";
+    }
+
+    final response = await _client.get(url).timeout(_fetchTimeout);
 
     if (response.statusCode == 200) {
       _flags = flagsFromJson(response.body);
