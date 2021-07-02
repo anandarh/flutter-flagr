@@ -1,18 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_flagr/flutter_flagr.dart';
+import 'package:flutter_flagr/flagr.dart';
 
-void main() async {
-  await Flagr.init(
-    'https://try-flagr.herokuapp.com/api/v1',
-
-    // The default fetchTimeout duration is 60 seconds
-    fetchTimeout: const Duration(seconds: 60),
-
-      // Polling is disabled if no minimumFetchInterval is given
-    minimumFetchInterval: const Duration(minutes: 15)
-  );
+Future<void> main() async {
+  await Flagr.init('https://try-flagr.herokuapp.com/api/v1');
 
   runApp(MyApp());
 }
@@ -51,7 +43,7 @@ class _MyAppState extends State<MyApp> {
 
     setState(() {
       _isEnabled =
-          flagr.isEnabled('api_baseurl', defaultValue: false).toString();
+          flagr.isEnabled('flag_key', defaultValue: false).toString();
     });
   }
 
