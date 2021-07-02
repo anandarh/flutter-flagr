@@ -6,20 +6,20 @@ The base path for all the APIs is "/api/v1". [Flagr Open-Source](https://github.
 ## Getting Started
 
 To use this plugin, add `flutter_flagr` as a [dependency in your pubspec.yaml file](https://flutter.dev/platform-plugins/).
-```
+```yaml
 dependencies:
   flutter_flagr: ^0.0.1
 ```
 
 To start using the Flutter Flagr package within your project, import the following package.
 
-```
+```dart
 import 'package:flutter_flagr/flagr.dart';
 ```
 
 
 Before using Flutter Flagr, you must first have ensured you have initialized Flutter Flagr.
-```
+```dart
 Future<void> main() async {
   await Flagr.init('https://try-flagr.herokuapp.com/api/v1');
 
@@ -29,13 +29,13 @@ Future<void> main() async {
 
 
 To create a new Flagr instance, call the `instance` getter on `Flagr`:
-```
+```dart
 final flagr = Flagr.instance;
 ```
 
 
 Checking if a feature is enabled
-```
+```dart
 // Will return `false` if it cannot find the flag key. 
 flagr.isEnabled('flag_key')
 
