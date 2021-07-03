@@ -1,7 +1,6 @@
-# Flagr Client SDK for Flutter
-
-This is an unofficial Flagr Client SDK for Flutter. Flagr is a feature flagging, A/B testing and dynamic configuration microservice. 
-The base path for all the APIs is "/api/v1". [Flagr Open-Source](https://github.com/checkr/flagr).
+<h1 align="center">Flagr Client SDK for Flutter <br/><a href="https://pub.dev/packages/flutter_flagr" target="blank"><img src="https://img.shields.io/pub/v/flutter_flagr.svg" /></a></h1>
+<p>This is an unofficial Flagr Client SDK for Flutter. Flagr is a feature flagging, A/B testing and dynamic configuration microservice. 
+The base path for all the APIs is "/api/v1". [Flagr Open-Source](https://github.com/checkr/flagr).</p>
 
 ## Getting Started
 
