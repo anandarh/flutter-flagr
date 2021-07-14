@@ -1,5 +1,6 @@
 name: flutter_flagr
-description: This is an unofficial Flagr Client SDK for Flutter. Flagr is a feature flagging, A/B testing and dynamic configuration microservice.
+description: This is an unofficial Flagr Client SDK for Flutter. Flagr is a
+  feature flagging, A/B testing and dynamic configuration microservice.
 version: 0.1.0
 author: R Herdianto
 homepage: https://github.com/anandarh/flutter-flagr
@@ -11,6 +12,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  ffcache: ^0.1.3
   http: ^0.12.2
 
 dev_dependencies:
