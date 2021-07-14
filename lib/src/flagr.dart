@@ -9,24 +9,24 @@ import 'package:http/http.dart' as http;
 import 'evaluation_response.dart';
 
 class Flagr {
-  Flagr._internal(this._url, this._tags, this._client,
-      this._minimumFetchInterval, this._fetchTimeout);
+  Flagr._internal(
+      this._url, this._tags, this._minimumFetchInterval, this._fetchTimeout);
+
+  static Flagr _instance;
 
   final String _url;
 
   final String _tags;
 
-  final http.Client _client;
-
   final Duration _minimumFetchInterval;
 
   final Duration _fetchTimeout;
 
+  final http.Client _client = http.Client();
+
   List<Flag> _flags;
 
   Timer _togglePollingTimer;
-
-  static Flagr _instance;
 
   static Flagr get instance {
     if (_instance == null) throw Exception('Flagr must be initialized first.');
@@ -45,18 +45,10 @@ class Flagr {
       fetchTimeout = const Duration(seconds: 60);
     }
 
-    _instance = Flagr._internal(
-        api, tags, http.Client(), minimumFetchInterval, fetchTimeout);
+    _instance = Flagr._internal(api, tags, minimumFetchInterval, fetchTimeout);
     await _instance._loadToggles();
     _instance._setTogglePollingTimer();
     return _instance;
-  }
-
-  String get url => _url;
-
-  void dispose() {
-    _client.close();
-    _togglePollingTimer?.cancel();
   }
 
   Future<void> _loadToggles() async {
@@ -73,6 +65,16 @@ class Flagr {
     } else {
       throw HttpException(response.body, uri: Uri.parse(url));
     }
+  }
+
+  void _setTogglePollingTimer() {
+    if (_minimumFetchInterval == null) {
+      return;
+    }
+
+    _togglePollingTimer = Timer.periodic(_minimumFetchInterval, (timer) {
+      _loadToggles();
+    });
   }
 
   bool isEnabled(String flagKey, {bool defaultValue = false}) {
@@ -94,7 +96,9 @@ class Flagr {
       return defaultFlag;
     });
 
-    return featureFlag.enabled;
+    final toggle = featureFlag ?? defaultFlag;
+
+    return toggle.enabled ?? defaultValue;
   }
 
   Future<EvaluationResponse> postEvaluation(
@@ -108,13 +112,8 @@ class Flagr {
     return EvaluationResponse.fromJson(json.decode(response.body));
   }
 
-  void _setTogglePollingTimer() {
-    if (_minimumFetchInterval == null) {
-      return;
-    }
-
-    _togglePollingTimer = Timer.periodic(_minimumFetchInterval, (timer) {
-      _loadToggles();
-    });
+  void dispose() {
+    _client.close();
+    _togglePollingTimer?.cancel();
   }
 }
